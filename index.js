@@ -40,12 +40,13 @@ const start = () => {
     })
 
     bot.on('callback_query', async msg => {
-        const data = msg.data;
-        const chatId = msg.message.chat.id;
-        if (data === '/again') {
+        const data = msg.data
+        const chatId = msg.message.chat.id
+        if (data == '/again') {
             return startGame(chatId)
         }
-        if (data === chats[chatId]) {
+        const guessedNumber = parseInt(data)
+        if (guessedNumber === chats[chatId]) {
             return bot.sendMessage(chatId, `Дух Ванги и Жириновского живёт в тебе, ты отгадал цифру ${chats[chatId]}`, againOptions)
         } else {
             return bot.sendMessage(chatId, `Экзамен на битву экстрасенсов в ТНТ провален, бот загадал цифру ${chats[chatId]}`, againOptions)
