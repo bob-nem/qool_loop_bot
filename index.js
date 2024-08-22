@@ -1,5 +1,5 @@
 const tg_token = require('./token');
-
+const {gameOptions, againOptions} = require('./options')
 const TelegramApi = require('node-telegram-bot-api')
 
 // Call the tg_token function to get the actual token value
@@ -9,12 +9,11 @@ const bot = new TelegramApi(token, {polling: true})
 
 const chats = {} 
 
-const gameOptions = {
-    reply_markup:JSON.stringify({
-        inline_keyboard: [
-            [{text: 'текст кнопки', callback_data: 'skdjf'}]
-        ]
-    })
+const startGame = async (chatId) => {
+    await bot.sendMessage(chatId, `Я загадываю цифру от 0 до 10, ты отгадываешь.`)
+    const randomNumber = Math.floor(Math.random() * 10)
+    chats[chatId] = randomNumber;
+    await bot.sendMessage(chatId, 'Отгадывай', gameOptions)
 }
 
 const start = () => {
@@ -35,12 +34,22 @@ const start = () => {
             return bot.sendMessage(chatId, `Твоё имя: ${msg.from.first_name} ${msg.from.last_name}`)
         }
         if (text === '/game') {
-            await bot.sendMessage(chatId, `Я загадываю цифру от 0 до 10, ты отгадываешь.`)
-            const randomNumber = Math.floor(Math.random() * 10)
-            chats[chatId] = randomNumber;
-            return bot.sendMessage(chatId, 'Отгадывай', gameOptions)
+            return startGame(chatId)
         }
         return bot.sendMessage(chatId, `Не понимаю. Всевышний не прописал соответствующую логику.`)
+    })
+
+    bot.on('callback_query', async msg => {
+        const data = msg.data;
+        const chatId = msg.message.chat.id;
+        if (data === '/again') {
+            return startGame(chatId)
+        }
+        if (data === chats[chatId]) {
+            return bot.sendMessage(chatId, `Дух Ванги и Жириновского живёт в тебе, ты отгадал цифру ${chats[chatId]}`, againOptions)
+        } else {
+            return bot.sendMessage(chatId, `Экзамен на битву экстрасенсов в ТНТ провален, бот загадал цифру ${chats[chatId]}`, againOptions)
+        }
     })
 }
 
